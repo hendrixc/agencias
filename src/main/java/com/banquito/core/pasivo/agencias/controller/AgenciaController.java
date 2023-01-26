@@ -1,5 +1,6 @@
 package com.banquito.core.pasivo.agencias.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.banquito.core.pasivo.agencias.controller.dto.AgenciaMapper;
+import com.banquito.core.pasivo.agencias.controller.dto.AgenciaRQ;
+import com.banquito.core.pasivo.agencias.controller.dto.AgenciaRS;
 import com.banquito.core.pasivo.agencias.exception.CRUDException;
 import com.banquito.core.pasivo.agencias.model.Agencia;
 import com.banquito.core.pasivo.agencias.service.AgenciaService;
@@ -29,37 +33,45 @@ public class AgenciaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Agencia>> listarTodas() {
+    public ResponseEntity<List<AgenciaRS>> listarTodas() {
         log.info("Retorna las agencias registradas");
         List<Agencia> agencias = this.service.obtenerTodas();
         log.info("Retornando {} agencias", agencias.size());
-        return ResponseEntity.ok(agencias); 
+        return ResponseEntity.ok(AgenciaMapper.mapToAgenciasRS(agencias)); 
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<Agencia> obtenerAgenciaPorCodigo(@PathVariable(name = "codigo") String codigo) {
+    public ResponseEntity<AgenciaRS> obtenerAgenciaPorCodigo(@PathVariable(name = "codigo") String codigo) {
         log.info("Va a buscar agencia por codigo {}", codigo);
         Agencia agencia = this.service.obtenerPorCodigo(codigo);
         if (agencia!=null) {
-            return ResponseEntity.ok(agencia);
+            return ResponseEntity.ok(AgenciaMapper.mapToAgenciaRS(agencia));
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PostMapping
-    public ResponseEntity<String> crear(@RequestBody Agencia agencia) {
+    public ResponseEntity<String> crear(@RequestBody AgenciaRQ agenciaRQ) {
         try {
-            this.service.crear(agencia);
+            this.service.crear(AgenciaMapper.mapToAgencia(agenciaRQ));
             return ResponseEntity.ok().build();
         } catch (CRUDException e) {
-            log.error("Error al crear la agencia {}", e.getMessage(), e);
+            log.error("Error al crear la agencia: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/{id}")
-    public  ResponseEntity<String> actualizar(@RequestBody Agencia agencia, @PathVariable(name="id") String id) {
-        return null;
+    public  ResponseEntity actualizar(@RequestBody AgenciaRQ agenciaRQ, @PathVariable(name="id") String id) {
+        try {
+            this.service.actualizar(id, AgenciaMapper.mapToAgencia(agenciaRQ));
+            return ResponseEntity.ok(this.service.obtenerPorId(id));
+        } catch (CRUDException e){
+            log.error("Error al actualizar la agencia: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getErrorCode()).build();
+        }
     }
+
+
 }

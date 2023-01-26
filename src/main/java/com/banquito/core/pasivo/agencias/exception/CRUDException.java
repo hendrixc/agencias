@@ -2,15 +2,24 @@ package com.banquito.core.pasivo.agencias.exception;
 
 public class CRUDException extends Exception{
 
-    public CRUDException() {
+    private final Integer errorCode;
+    
+    public CRUDException(Integer errorCode) {
+        this.errorCode = errorCode;
     }
 
-    public CRUDException(String arg0) {
+    public CRUDException(Integer errorCode, String arg0) {
         super(arg0);
+        this.errorCode = errorCode;
     }
 
-    public CRUDException(String arg0, Throwable arg1) {
+    public CRUDException(Integer errorCode, String arg0, Throwable arg1) {
         super(arg0, arg1);
+        this.errorCode = errorCode;
+    }
+
+    public Integer getErrorCode() {
+        return errorCode;
     }
     
     
